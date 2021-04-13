@@ -1,42 +1,137 @@
-'use strict'
-
-
-function MyArray() {
-  this.length = 0;
+"use strict";
+class MyArrayIterator {
+  constructor(array) {
+    this.array = array;
+    this.currentIndex = 0;
+  }
+  next() {
+    return {
+      done: this.currentIndex >= this.array.length,
+      value: this.array[this.currentIndex++],
+    };
+  }
 }
 
-MyArray.prototype = new MyArrayProto();
-
-function MyArrayProto() {
-  this.push = function push(item) {
-    this[this.length++] = item;
-    return this.length
+class MyArray {
+  constructor() {
+    this.length = 0;
+    for (let i = 0; i < arguments.length; i++) {
+      this.push(arguments[i]);
+    }
   }
-  this.pop = function pop() {
+  push() {
+    for (let i = 0; i < arguments.length; i++) {
+      this[this.length++] = arguments[i];
+    }
+    return this.length;
+  }
+  pop() {
     if (this.length === 0) return;
 
-    const lvalue = this[this.length - 1];
+    const lastValue = this[this.length - 1];
     delete this[--this.length];
-    return lvalue;
+    return lastValue;
   }
-  this.shift = function shift() {
-
+  unshift() {
+    for (let i = this.length - 1; i >= 0; i--) {
+      this[i + arguments.length] = this[i];
     }
-  
+    for (let i = 0; i < arguments.length; i++) {
+      this[i] = arguments[i];
+    }
+    return (this.length += arguments.length);
   }
+  shift() {
+    if (this.length === 0) return;
+    const firstElem = this[0];
+    for (let i = 0; i < this.length - 1; i++) {
+      this[i] = this[i + 1];
+    }
+    delete this[--this.length];
+    return firstElem;
+  }
+  concat() {
+    const newArray = new MyArray();
+    for (let i = 0; i < this.length; i++) {
+      newArray.push(this[i]);
+    }
+    for (let i = 0; i < arguments.length; i++) {
+      if (MyArray.isMyArray(arguments[i]) || Array.isArray(arguments[i])) {
+        for (let j = 0; j < arguments[i].length; j++) {
+          newArray.push(arguments[i][j]);
+        }
+      } else {
+        newArray.push(arguments[i]);
+      }
+    }
+    return newArray;
+  }
+  reverse() {
+    const maxIndex = this.length - 1;
+    const middle = maxIndex / 2;
+    for (let i = 0; i < middle; i++) {
+      const temp = this[i];
+      this[i] = this[maxIndex - i];
+      this[maxIndex - i] = temp;
+    }
+    return this;
+  }
+  /**
+   *
+   * @param {function} callback
+   */
+  forEach(callback) {
+    for (let i = 0; i < this.length; i++) {
+      callback(this[i], i, this);
+    }
+  }
+  map(callback) {
+    const newArray = new MyArray();
+    for (let i = 0; i < this.length; i++) {
+      newArray.push(callback(this[i], i, this));
+    }
+    return newArray;
+  }
+  some(callback) {
+    for (let i = 0; i < this.length; i++) {
+      if (callback(this[i], i, this)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  every(callback) {
+    for (let i = 0; i < this.length; i++) {
+      if (!callback(this[i], i, this)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  filter(callback) {
+    const newArray = new MyArray();
+    for (let i = 0; i < this.length; i++) {
+      if (callback(this[i], i, this)) {
+        newArray.push(this[i]);
+      }
+    }
+    return newArray;
+  }
+  flat(depth) {
+    let result = new MyArray();
+    this.forEach((item) => {
+      if (MyArray.isMyArray(item) && depth > 0) {
+        result = result.concat(item.flat(depth - 1));
+      } else if (item !== undefined) {
+        result.push(item);
+      }
+    });
 
-  
+    return result;
+  }
+  static isMyArray(arr) {
+    return arr instanceof MyArray;
+  }
+}
 
-
-const frag = new MyArray();
-frag.push(1)
-frag.push(2)
-frag.push(3)
-frag.push(4)
-console.log(frag)
-frag.shift()
-console.log(frag)
-frag.shift()
-console.log(frag)
-
-
+//=====================================>
